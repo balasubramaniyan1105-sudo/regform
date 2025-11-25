@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Register Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+        
+        .register-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .register-display {
+            background: #0d1b2a;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #1b263b;
+        }
+        
+        .register-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .register-title h2 {
+            font-size: 1.5rem;
+            color: #4cc9f0;
+        }
+        
+        .register-bits {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .bit {
+            width: 50px;
+            height: 60px;
+            background: #1b263b;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 2px solid #415a77;
+        }
+        
+        .bit.active {
+            background: #4cc9f0;
+            color: #000;
+            border-color: #f72585;
+            box-shadow: 0 0 10px #4cc9f0;
+        }
+        
+        .bit-index {
+            font-size: 0.8rem;
+            color: #778da9;
+            margin-bottom: 5px;
+        }
+        
+        .bit-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .register-value {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .register-value span {
+            color: #4cc9f0;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .control-panel {
+            background: #0d1b2a;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #1b263b;
+        }
+        
+        .control-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #f72585;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .input-box {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e0e1dd;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #415a77;
+            background: #1b263b;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to right, #4361ee, #3a0ca3);
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #3a0ca3, #4361ee);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .operations {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .operation-btn {
+            flex: 1;
+        }
+        
+        .info-panel {
+            background: #0d1b2a;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #1b263b;
+            margin-top: 20px;
+        }
+        
+        .info-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #f72585;
+        }
+        
+        .info-content {
+            line-height: 1.6;
+            color: #e0e1dd;
+        }
+        
+        .highlight {
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .operations {
+                flex-direction: column;
+            }
+            
+            .bit {
+                width: 40px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Digital Register Simulator</h1>
+            <p class="subtitle">Visualize how data is stored and manipulated in computer registers</p>
+        </header>
+        
+        <div class="register-container">
+            <div class="register-display">
+                <div class="register-title">
+                    <h2>8-BIT REGISTER</h2>
+                    <div class="register-status">Status: <span id="status">Ready</span></div>
+                </div>
+                
+                <div class="register-bits" id="bit-container">
+                    <!-- Bits will be generated by JavaScript -->
+                </div>
+                
+                <div class="register-value">
+                    Current Value: <span id="decimal-value">0</span> (Decimal) | 
+                    <span id="hex-value">0x00</span> (Hex)
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <h3 class="control-title">Register Controls</h3>
+                
+                <div class="input-group">
+                    <div class="input-box">
+                        <label for="data-input">Input Data (0-255)</label>
+                        <input type="number" id="data-input" min="0" max="255" value="0">
+                    </div>
+                    
+                    <div class="input-box">
+                        <label for="operation">Operation</label>
+                        <select id="operation">
+                            <option value="load">Load Data</option>
+                            <option value="clear">Clear Register</option>
+                            <option value="shift-left">Shift Left</option>
+                            <option value="shift-right">Shift Right</option>
+                            <option value="increment">Increment</option>
+                            <option value="decrement">Decrement</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="operations">
+                    <button id="execute-btn" class="operation-btn">Execute Operation</button>
+                    <button id="random-btn" class="operation-btn">Load Random Value</button>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h3 class="info-title">About Digital Registers</h3>
+                <div class="info-content">
+                    <p>A register is a small amount of fast storage in a computer's CPU. This simulation shows an <span class="highlight">8-bit register</span> that can store values from 0 to 255.</p>
+                    <p><span class="highlight">Key operations:</span></p>
+                    <ul>
+                        <li><span class="highlight">Load:</span> Stores a new value in the register</li>
+                        <li><span class="highlight">Shift Left/Right:</span> Moves bits left or right (multiplies/divides by 2)</li>
+                        <li><span class="highlight">Increment/Decrement:</span> Increases/decreases the value by 1</li>
+                        <li><span class="highlight">Clear:</span> Resets all bits to 0</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bitContainer = document.getElementById('bit-container');
+            const decimalValue = document.getElementById('decimal-value');
+            const hexValue = document.getElementById('hex-value');
+            const dataInput = document.getElementById('data-input');
+            const operationSelect = document.getElementById('operation');
+            const executeBtn = document.getElementById('execute-btn');
+            const randomBtn = document.getElementById('random-btn');
+            const status = document.getElementById('status');
+            
+            let registerValue = 0;
+            
+            // Initialize the bit display
+            function initializeBits() {
+                bitContainer.innerHTML = '';
+                for (let i = 7; i >= 0; i--) {
+                    const bitElement = document.createElement('div');
+                    bitElement.className = 'bit';
+                    bitElement.innerHTML = `
+                        <div class="bit-index">${i}</div>
+                        <div class="bit-value">0</div>
+                    `;
+                    bitContainer.appendChild(bitElement);
+                }
+                updateDisplay();
+            }
+            
+            // Update the visual display of bits and values
+            function updateDisplay() {
+                const bits = registerValue.toString(2).padStart(8, '0');
+                const bitElements = document.querySelectorAll('.bit');
+                
+                for (let i = 0; i < 8; i++) {
+                    const bitValue = bits.charAt(i);
+                    const bitElement = bitElements[7 - i];
+                    bitElement.querySelector('.bit-value').textContent = bitValue;
+                    
+                    if (bitValue === '1') {
+                        bitElement.classList.add('active');
+                    } else {
+                        bitElement.classList.remove('active');
+                    }
+                }
+                
+                decimalValue.textContent = registerValue;
+                hexValue.textContent = '0x' + registerValue.toString(16).toUpperCase().padStart(2, '0');
+            }
+            
+            // Execute the selected operation
+            function executeOperation() {
+                const operation = operationSelect.value;
+                let inputValue = parseInt(dataInput.value) || 0;
+                
+                // Ensure input is within 0-255 range
+                if (inputValue < 0) inputValue = 0;
+                if (inputValue > 255) inputValue = 255;
+                
+                status.textContent = 'Processing...';
+                
+                // Simulate processing delay
+                setTimeout(() => {
+                    switch(operation) {
+                        case 'load':
+                            registerValue = inputValue;
+                            status.textContent = `Loaded value: ${inputValue}`;
+                            break;
+                        case 'clear':
+                            registerValue = 0;
+                            status.textContent = 'Register cleared';
+                            break;
+                        case 'shift-left':
+                            registerValue = (registerValue << 1) & 0xFF;
+                            status.textContent = 'Shifted left (multiplied by 2)';
+                            break;
+                        case 'shift-right':
+                            registerValue = (registerValue >> 1) & 0xFF;
+                            status.textContent = 'Shifted right (divided by 2)';
+                            break;
+                        case 'increment':
+                            registerValue = (registerValue + 1) & 0xFF;
+                            status.textContent = 'Incremented by 1';
+                            break;
+                        case 'decrement':
+                            registerValue = (registerValue - 1) & 0xFF;
+                            if (registerValue < 0) registerValue = 0;
+                            status.textContent = 'Decremented by 1';
+                            break;
+                    }
+                    
+                    updateDisplay();
+                }, 500);
+            }
+            
+            // Load a random value
+            function loadRandom() {
+                const randomValue = Math.floor(Math.random() * 256);
+                dataInput.value = randomValue;
+                operationSelect.value = 'load';
+                executeOperation();
+            }
+            
+            // Event listeners
+            executeBtn.addEventListener('click', executeOperation);
+            randomBtn.addEventListener('click', loadRandom);
+            
+            // Initialize the display
+            initializeBits();
+        });
+    </script>
+</body>
+</html>
